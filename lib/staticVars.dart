@@ -15,7 +15,13 @@ class staticVars {
   static var lastLogin;
   static var mobile;
   static var name;
-
+  static var url;
+  static var url1;
+  static var temp;
+  static var temp1;
   static var authc;
+  static var doclen;
+  static var docs;
+  static var id;
   static FirebaseFirestore fsconnect = FirebaseFirestore.instance;
 }

@@ -1,11 +1,14 @@
 import 'dart:convert';
-
+//import 'package:firebase/firebase.dart' as fb;
 import 'package:JustChat/Animation/animation.dart';
+import 'package:JustChat/chat.dart';
+import 'package:JustChat/chat.dart';
 import 'package:JustChat/staticVars.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:animated_text/animated_text.dart';
 import 'package:animations/animations.dart';
 import 'package:bottom_personalized_dot_bar/bottom_personalized_dot_bar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_field/date_field.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
@@ -18,6 +21,8 @@ import 'package:firebase_storage/firebase_storage.dart';
 
 import 'package:path/path.dart';
 
+import 'package:path/path.dart' as Path;
+
 class Profile extends StatefulWidget {
   @override
   _ProfileState createState() => _ProfileState();
@@ -27,7 +32,9 @@ class _ProfileState extends State<Profile> {
   @override
   Widget build(BuildContext context) {
     FlutterStatusbarcolor.setStatusBarColor(Colors.white);
-    FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+    FlutterStatusbarcolor.setNavigationBarColor(Colors.white);
+    FlutterStatusbarcolor.setNavigationBarWhiteForeground(true);
+    FlutterStatusbarcolor.setStatusBarWhiteForeground(true);
 
     var createProfileBody = createProfile();
 
@@ -47,17 +54,6 @@ class _ProfileState extends State<Profile> {
                 Navigator.pop(context);
               }),
         ),
-        /*bottomNavigationBar: AnimatedBottomNavigationBar(
-          icons: [FontAwesome.user, FontAwesome.home, FlutterIcons.setting_ant],
-          activeIndex: 1,
-          gapLocation: GapLocation.end,
-          notchSmoothness: NotchSmoothness.verySmoothEdge,
-          leftCornerRadius: 32,
-          rightCornerRadius: 0,
-          onTap: (index) {},
-          height: 65,
-          //other params
-        ),*/
         body: createProfileBody,
       ),
     );
@@ -76,43 +72,32 @@ class _createProfileState extends State<createProfile> {
 
   File image;
 
-  Future uploadProfilePic123(File file) async {
-    String filename = "${staticVars.name}" + "-Pic.jpg";
-    var firebaseStorageReference =
-        FirebaseStorage.instance.ref().child("ProfilePic/$filename");
-    var uploadTask;
-    uploadTask = firebaseStorageReference.putFile(file);
+  var URL;
 
-    var taskSnapshot = await uploadTask.onComplete;
-    taskSnapshot.ref.getDownloadURL().then((value) => print("Done => $value"));
+  Future imageRetrieve() async {
+    var retrieved = await staticVars.fsconnect
+        .collection("user")
+        .doc("Profiles")
+        .collection("${staticVars.username}")
+        .doc("${staticVars.username}-Profile")
+        .get();
+
+    print(retrieved.data());
+
+    setState(() {
+      staticVars.temp1 = retrieved.data();
+    });
+
+    print("RETRIEVED : ${staticVars.temp['ProfilePic']}");
   }
-
-  Future uploadProfilePic(BuildContext context, File file) async {
-    String fileName = basename(file.path);
-    var firebaseStorageRef =
-        FirebaseStorage.instance.ref().child('uploads/$fileName');
-    var uploadTask;
-    uploadTask = firebaseStorageRef.putFile(file);
-
-    var taskSnapshot = await uploadTask.onComplete;
-    taskSnapshot.ref.getDownloadURL().then(
-          (value) => print("Done: $value"),
-        );
-  }
-
-  /*Future uploadImageToFirebase(BuildContext context) async {
-    String fileName = basename(_imageFile.path);
-    StorageReference firebaseStorageRef =
-        FirebaseStorage.instance.ref().child('uploads/$fileName');
-    StorageUploadTask uploadTask = firebaseStorageRef.putFile(_imageFile);
-    StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
-    taskSnapshot.ref.getDownloadURL().then(
-          (value) => print("Done: $value"),
-        );
-  }*/
 
   @override
   Widget build(BuildContext context) {
+    FlutterStatusbarcolor.setStatusBarColor(Colors.white);
+    FlutterStatusbarcolor.setNavigationBarColor(Colors.white);
+    FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+    FlutterStatusbarcolor.setNavigationBarWhiteForeground(false);
+
     Future getImage(ImgSource source) async {
       var imageSelected = await ImagePickerGC.pickImage(
         source: source,
@@ -124,30 +109,39 @@ class _createProfileState extends State<createProfile> {
       });
     }
 
-    var profileBody = SingleChildScrollView(
-      child: Container(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        child: Column(
-          children: <Widget>[
-            Container(
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.only(left: 20, top: 20),
-                height: 80,
-                child: Container(
-                    child: FadeAnimation(
-                        1,
-                        Text(
-                          "Profiles",
-                          style: TextStyle(
-                              color: Colors.blue.shade900,
-                              fontSize: 35,
-                              fontWeight: FontWeight.w900),
-                        )))),
-          ],
-        ),
-      ),
-    );
+    Future uploadProfilePic(var file, var username, var mail) async {
+      StorageReference storageReference = FirebaseStorage.instance
+          .ref()
+          .child('ProfilePic/$username/${Path.basename(file.path)}}');
+      StorageUploadTask uploadTask = storageReference.putFile(file);
+      await uploadTask.onComplete;
+      print('File Uploaded');
+      storageReference.getDownloadURL().then((fileURL) async {
+        setState(() {
+          staticVars.url = fileURL;
+          URL = fileURL;
+          print(
+              "\n################################################\nIMAGE URL = ${staticVars.url} \n##############################################");
+        });
+        await staticVars.fsconnect
+            .collection("user")
+            .doc("Profiles")
+            .collection("$mail")
+            .doc("$mail-Profile")
+            .update(
+          {
+            "ProfilePic": "$fileURL",
+          },
+        );
+
+        await staticVars.fsconnect
+            .collection("user")
+            .doc("ids")
+            .collection("user-ids")
+            .doc("$mail")
+            .update({"pic": "$fileURL"});
+      });
+    }
 
     return SingleChildScrollView(
       child: Container(
@@ -221,10 +215,21 @@ class _createProfileState extends State<createProfile> {
                           focusColor: Colors.grey.shade100,
                           hoverColor: Colors.grey.shade100,
                           highlightColor: Colors.grey.shade100,
-                          child: Image.file(
-                            staticVars.file,
-                            fit: BoxFit.fill,
-                            height: 240,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(45),
+                                  topRight: Radius.circular(45),
+                                  bottomRight: Radius.circular(45)),
+                              color: Colors.grey.shade100,
+                            ),
+                            height: 250,
+                            width: 300,
+                            child: Image.file(
+                              staticVars.file,
+                              fit: BoxFit.cover,
+                              height: 240,
+                            ),
                           ),
                           onPressed: () async {
                             await getImage(ImgSource.Gallery);
@@ -366,6 +371,116 @@ class _createProfileState extends State<createProfile> {
                       setState(() {
                         isCreated = true;
                       });
+
+                      /*Navigator.push(context,
+                          MaterialPageRoute(builder: (BuildContext context) {
+                        return MyChat();
+                      }));*/
+
+                      try {
+                        var retrieved = await staticVars.fsconnect
+                            .collection("user")
+                            .doc("Profiles")
+                            .collection("${staticVars.username}")
+                            .doc("${staticVars.username}-Profile")
+                            .get();
+
+                        print(retrieved.data());
+                        staticVars.temp = retrieved.data();
+                        var temp = staticVars.temp;
+
+                        if (temp["ProfileName"] == null ||
+                            temp["ProfileDOB"] == null) {
+                          print(
+                              "#######################################################\n");
+                          print("URL1 = ${staticVars.url}\n");
+                          print("URL2 = $URL");
+                          print(
+                              "####################################################");
+
+                          await staticVars.fsconnect
+                              .collection("user")
+                              .doc("Profiles")
+                              .collection("${staticVars.username}")
+                              .doc("${staticVars.username}-Profile")
+                              .update(
+                            {
+                              //###########################
+
+                              //#######################
+                              "ProfileName": staticVars.name,
+                              //"ProfilePic": "${staticVars.url}",
+                              "ProfileDOB": "${staticVars.dob}",
+                            },
+                          );
+
+                          await uploadProfilePic(staticVars.file,
+                              staticVars.name, staticVars.username);
+
+                          await staticVars.fsconnect
+                              .collection("user")
+                              .doc("ids")
+                              .collection("user-ids")
+                              .doc("${staticVars.username}")
+                              .update({
+                            "name": staticVars.name,
+                            "mail": staticVars.username
+                          });
+
+                          var r = staticVars.fsconnect
+                              .collection("user")
+                              .doc("ids")
+                              .collection("user-ids");
+
+                          var documents = await r.get();
+                          var docLen = documents.docs.length;
+
+                          List<DocumentSnapshot> docs = documents.docs;
+                          int k = 0;
+                          /*for (var i in docs) {
+                            if (i['name'] == staticVars.name) {
+                              print(docs[k]['name']);
+                              docs.removeAt(k);
+                              print("DONE REMOVING");
+                              //docLen--;
+                              //print("LENGTH REDUCED");
+                            }
+                            k++;
+                            print(k);
+                          }*/
+                          setState(() {
+                            staticVars.doclen = docLen;
+                            staticVars.docs = docs;
+                          });
+
+                          //profile pic
+
+                          //print("IMAGE = ${temp['ProfilePic']}");
+
+                          print("RETRIEVING IMAGE ******************");
+
+                          await imageRetrieve();
+
+                          print("DONE*********************************");
+
+                          setState(() {
+                            isCreated = false;
+                          });
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return SelectProfile();
+                          }));
+                        } else {
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return SelectProfile();
+                          }));
+                          //
+                        }
+                      } catch (e) {
+                        print(e);
+                      }
+                      /*
                       try {
                         if (staticVars.name != null &&
                             staticVars.file != null &&
@@ -384,16 +499,14 @@ class _createProfileState extends State<createProfile> {
                             },
                           );
 
-                          await uploadProfilePic(context, staticVars.file);
+                          //await uploadProfilePic(context, staticVars.file);
+                          await uploadProfilePic(staticVars.file);
                           setState(() {
                             isCreated = false;
                           });
-
                           Navigator.push(context,
                               MaterialPageRoute(builder: (context) {
-                            return Scaffold(
-                              body: profileBody,
-                            );
+                            return SelectProfile();
                           }));
                         } else {
                           //
@@ -402,7 +515,228 @@ class _createProfileState extends State<createProfile> {
                         print(e);
                         //AppToast("Cannot create Profile");
                       }
+
+                      */
                     }))
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class SelectProfile extends StatefulWidget {
+  @override
+  _SelectProfileState createState() => _SelectProfileState();
+}
+
+class _SelectProfileState extends State<SelectProfile> {
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    //await profileSelect();
+    print(staticVars.doclen);
+  }
+
+  Future profileSelect() async {
+    var r = await staticVars.fsconnect
+        .collection("user")
+        .doc("ids")
+        .collection("user-ids");
+
+    var documents = await r.get();
+    var docLen = documents.docs.length;
+
+    List<DocumentSnapshot> docs = documents.docs;
+
+    setState(() {
+      staticVars.doclen = docLen;
+    });
+
+    //print("RETRIEVED : ${staticVars.temp['ProfilePic']}");
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    FlutterStatusbarcolor.setStatusBarColor(Colors.white);
+    FlutterStatusbarcolor.setNavigationBarColor(Colors.white);
+    FlutterStatusbarcolor.setStatusBarWhiteForeground(false);
+    FlutterStatusbarcolor.setNavigationBarWhiteForeground(false);
+
+    //imageRetrieve();
+
+    var profileBody = SingleChildScrollView(
+      child: Container(
+          color: Colors.white,
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
+          child: ListView(
+            physics: NeverScrollableScrollPhysics(),
+            scrollDirection: Axis.vertical,
+            //separatorBuilder: (context, index) => Divider(),
+            shrinkWrap: true,
+            children: <Widget>[
+              Container(
+                  alignment: Alignment.topLeft,
+                  margin: EdgeInsets.only(left: 20, top: 20),
+                  height: 80,
+                  child: Container(
+                      child: FadeAnimation(
+                          1,
+                          Text(
+                            "Profiles",
+                            style: TextStyle(
+                                color: Colors.blue.shade900,
+                                fontSize: 35,
+                                fontWeight: FontWeight.w900),
+                          )))),
+              ListView.builder(
+                  physics: NeverScrollableScrollPhysics(),
+                  scrollDirection: Axis.vertical,
+                  shrinkWrap: true,
+                  itemCount: staticVars.doclen,
+                  itemBuilder: (BuildContext context, int index) {
+                    return Column(
+                      children: <Widget>[
+                        Center(
+                          child: Stack(
+                            overflow: Overflow.visible,
+                            children: <Widget>[
+                              Container(
+                                height: 70,
+                                alignment: Alignment.bottomCenter,
+                                margin: EdgeInsets.only(left: 45),
+                                decoration: BoxDecoration(
+                                    color: Colors.redAccent.shade400,
+                                    borderRadius: BorderRadius.circular(10)),
+                                width: MediaQuery.of(context).size.width - 75,
+                                child: RaisedButton(
+                                  color: Colors.redAccent.shade400,
+                                  elevation: 0,
+                                  onPressed: () async {
+                                    staticVars.id =
+                                        await staticVars.docs[index]['id'];
+
+                                    print(staticVars.id);
+                                    Navigator.push(context,
+                                        MaterialPageRoute(builder: (context) {
+                                      return MyChat();
+                                    }));
+                                  },
+                                  child: Center(
+                                    child: Text(
+                                      "${staticVars.docs[index]['name']}",
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                top: -10,
+                                //bottom: 20,
+                                height: 90,
+                                width: 90,
+                                child: Container(
+                                  //margin: EdgeInsets.only(top: 0, bottom: 10),
+                                  decoration: BoxDecoration(
+                                      color: Colors.blue,
+                                      border: Border.all(
+                                          width: 8, color: Colors.white),
+                                      shape: BoxShape.circle,
+                                      image: DecorationImage(
+                                          fit: BoxFit.cover,
+                                          image: NetworkImage(
+                                              staticVars.docs[index]['pic']))),
+                                  alignment: Alignment.topCenter,
+                                  height: 100,
+                                  width: 100,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          height: 23,
+                        )
+                      ],
+                    );
+                  }),
+            ],
+          )
+
+          /*Column(
+          children: <Widget>[
+            Container(
+                alignment: Alignment.topLeft,
+                margin: EdgeInsets.only(left: 20, top: 20),
+                height: 80,
+                child: Container(
+                    child: FadeAnimation(
+                        1,
+                        Text(
+                          "Profiles",
+                          style: TextStyle(
+                              color: Colors.blue.shade900,
+                              fontSize: 35,
+                              fontWeight: FontWeight.w900),
+                        )))),
+            /*ListView.builder(
+              itemBuilder: (BuildContext context, int n) {
+                return ListView();
+              },
+              itemCount: 2,
+            )*/
+          ],
+        ),*/
+          ),
+    );
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.white,
+        body: profileBody,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+              icon: Icon(
+                FlutterIcons.menu_ent,
+                color: Colors.blue.shade900,
+                size: 30,
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              }),
+          actions: <Widget>[
+            IconButton(
+                icon: Icon(
+                  Icons.search,
+                  color: Colors.blue.shade900,
+                  size: 30,
+                ),
+                onPressed: null),
+            Container(
+              height: 1,
+              width: 55,
+              decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                      color: Colors.grey.shade300,
+                      width: 5,
+                      style: BorderStyle.solid),
+                  image: DecorationImage(
+                      fit: BoxFit.cover,
+                      image: NetworkImage(staticVars.temp1["ProfilePic"]))),
+            ),
+            SizedBox(
+              width: 10,
+            ),
           ],
         ),
       ),
