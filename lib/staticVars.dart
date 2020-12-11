@@ -23,5 +23,7 @@ class staticVars {
   static var doclen;
   static var docs;
   static var id;
+  static var profName;
+  static var index;
   static FirebaseFirestore fsconnect = FirebaseFirestore.instance;
 }

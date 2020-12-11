@@ -782,7 +782,10 @@ class _ContinueWithTheProfileState extends State<ContinueWithTheProfile> {
                                   color: Colors.grey.shade900,
                                 ),
                                 onPressed: () async {
-                                  return Profile();
+                                  Navigator.push(context,
+                                      MaterialPageRoute(builder: (context) {
+                                    return Profile();
+                                  }));
                                 }),
                           ),
                         ),

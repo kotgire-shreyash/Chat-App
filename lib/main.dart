@@ -23,13 +23,15 @@ class App extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         //home: Splash(),
         home: AnimatedSplashScreen(
-            function: () async {},
+            //function: () async {},
             splashIconSize: double.infinity,
             duration: 5000,
             splash: Splash(),
             nextScreen: Auth(),
+            splashTransition: SplashTransition.fadeTransition,
+            pageTransitionType: PageTransitionType.scale,
             //splashTransition: null,
             //pageTransitionType: PageTransitionType.leftToRightWithFade,
-            backgroundColor: Colors.grey.shade900));
+            backgroundColor: Colors.blue));
   }
 }

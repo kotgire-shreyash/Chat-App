@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
 
 class Splash extends StatefulWidget {
@@ -10,8 +11,8 @@ class Splash extends StatefulWidget {
 class _SplashState extends State<Splash> {
   @override
   Widget build(BuildContext context) {
-    FlutterStatusbarcolor.setNavigationBarColor(Colors.deepPurpleAccent);
-    FlutterStatusbarcolor.setStatusBarColor(Colors.deepPurpleAccent);
+    FlutterStatusbarcolor.setNavigationBarColor(Colors.white);
+    FlutterStatusbarcolor.setStatusBarColor(Colors.white);
 
     final Shader gradientText = LinearGradient(
         colors: [Colors.white, Colors.blueAccent.shade400],
@@ -22,7 +23,7 @@ class _SplashState extends State<Splash> {
     return Scaffold(
         body: Center(
             child: Container(
-      color: Colors.deepPurpleAccent.shade200,
+      color: Colors.white,
       height: MediaQuery.of(context).size.height,
       width: MediaQuery.of(context).size.width,
       child: Column(
@@ -41,7 +42,7 @@ class _SplashState extends State<Splash> {
                           child: Icon(
                             FlutterIcons.phone_android_mdi,
                             size: 120,
-                            color: Colors.white,
+                            color: Colors.black,
                           ),
                         ),
                       ),
@@ -49,13 +50,13 @@ class _SplashState extends State<Splash> {
                         left: 65,
                         bottom: 75,
                         child: Container(
-                          color: Colors.deepPurpleAccent.shade200,
+                          color: Colors.white,
                           height: 70,
                           width: 70,
                           child: Icon(
                             FlutterIcons.chat_mdi,
                             size: 70,
-                            color: Colors.white,
+                            color: Colors.black,
                           ),
                         ),
                       )
@@ -70,14 +71,8 @@ class _SplashState extends State<Splash> {
                         gradient: LinearGradient(
                             begin: Alignment.centerLeft,
                             end: Alignment.centerRight,
-                            stops: [
-                              .45,
-                              .1
-                            ],
-                            colors: [
-                              Colors.white,
-                              Colors.deepPurpleAccent.shade700
-                            ]),
+                            stops: [.45, .1],
+                            colors: [Colors.black, Colors.black]),
                       )
 
                       /*Text(
@@ -92,6 +87,10 @@ class _SplashState extends State<Splash> {
                 )
               ],
             ),
+          ),
+          SpinKitChasingDots(
+            size: 25,
+            color: Colors.blue,
           )
         ],
       ),

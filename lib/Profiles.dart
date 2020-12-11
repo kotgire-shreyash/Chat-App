@@ -597,102 +597,83 @@ class _SelectProfileState extends State<SelectProfile> {
                   shrinkWrap: true,
                   itemCount: staticVars.doclen,
                   itemBuilder: (BuildContext context, int index) {
-                    return Column(
-                      children: <Widget>[
-                        Center(
-                          child: Stack(
-                            overflow: Overflow.visible,
-                            children: <Widget>[
-                              Container(
-                                height: 70,
-                                alignment: Alignment.bottomCenter,
-                                margin: EdgeInsets.only(left: 45),
-                                decoration: BoxDecoration(
-                                    color: Colors.redAccent.shade400,
-                                    borderRadius: BorderRadius.circular(10)),
-                                width: MediaQuery.of(context).size.width - 75,
-                                child: RaisedButton(
-                                  color: Colors.redAccent.shade400,
-                                  elevation: 0,
-                                  onPressed: () async {
-                                    staticVars.id =
-                                        await staticVars.docs[index]['id'];
-
-                                    print(staticVars.id);
-                                    Navigator.push(context,
-                                        MaterialPageRoute(builder: (context) {
-                                      return MyChat();
-                                    }));
-                                  },
-                                  child: Center(
-                                    child: Text(
-                                      "${staticVars.docs[index]['name']}",
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold),
+                    return Container(
+                      color: Colors.white,
+                      child: RaisedButton(
+                        elevation: 0,
+                        color: Colors.white,
+                        disabledColor: Colors.white,
+                        onPressed: () async {
+                          staticVars.id = await staticVars.docs[index]['id'];
+                          staticVars.profName =
+                              await staticVars.docs[index]['name'];
+                          staticVars.index = index;
+                          print(staticVars.id);
+                          await Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return MyChat();
+                          }));
+                        },
+                        child: Column(
+                          children: <Widget>[
+                            Center(
+                              child: Stack(
+                                overflow: Overflow.visible,
+                                children: <Widget>[
+                                  Container(
+                                    height: 70,
+                                    alignment: Alignment.bottomCenter,
+                                    margin: EdgeInsets.only(left: 45),
+                                    decoration: BoxDecoration(
+                                        color: Colors.redAccent.shade400,
+                                        borderRadius:
+                                            BorderRadius.circular(10)),
+                                    width:
+                                        MediaQuery.of(context).size.width - 75,
+                                    child: Center(
+                                      child: Text(
+                                        "${staticVars.docs[index]['name']}",
+                                        style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold),
+                                      ),
                                     ),
                                   ),
-                                ),
+                                  Positioned(
+                                    top: -10,
+                                    //bottom: 20,
+                                    height: 90,
+                                    width: 90,
+                                    child: Container(
+                                      //margin: EdgeInsets.only(top: 0, bottom: 10),
+                                      decoration: BoxDecoration(
+                                          color: Colors.blue,
+                                          border: Border.all(
+                                              width: 8, color: Colors.white),
+                                          shape: BoxShape.circle,
+                                          image: DecorationImage(
+                                              fit: BoxFit.cover,
+                                              image: NetworkImage(staticVars
+                                                  .docs[index]['pic']))),
+                                      alignment: Alignment.topCenter,
+                                      height: 100,
+                                      width: 100,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Positioned(
-                                top: -10,
-                                //bottom: 20,
-                                height: 90,
-                                width: 90,
-                                child: Container(
-                                  //margin: EdgeInsets.only(top: 0, bottom: 10),
-                                  decoration: BoxDecoration(
-                                      color: Colors.blue,
-                                      border: Border.all(
-                                          width: 8, color: Colors.white),
-                                      shape: BoxShape.circle,
-                                      image: DecorationImage(
-                                          fit: BoxFit.cover,
-                                          image: NetworkImage(
-                                              staticVars.docs[index]['pic']))),
-                                  alignment: Alignment.topCenter,
-                                  height: 100,
-                                  width: 100,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                            SizedBox(
+                              height: 15,
+                            )
+                          ],
                         ),
-                        SizedBox(
-                          height: 23,
-                        )
-                      ],
+                      ),
                     );
                   }),
             ],
-          )
-
-          /*Column(
-          children: <Widget>[
-            Container(
-                alignment: Alignment.topLeft,
-                margin: EdgeInsets.only(left: 20, top: 20),
-                height: 80,
-                child: Container(
-                    child: FadeAnimation(
-                        1,
-                        Text(
-                          "Profiles",
-                          style: TextStyle(
-                              color: Colors.blue.shade900,
-                              fontSize: 35,
-                              fontWeight: FontWeight.w900),
-                        )))),
-            /*ListView.builder(
-              itemBuilder: (BuildContext context, int n) {
-                return ListView();
-              },
-              itemCount: 2,
-            )*/
-          ],
-        ),*/
-          ),
+          )),
     );
 
     return MaterialApp(
