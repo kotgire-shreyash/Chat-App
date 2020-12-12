@@ -14,7 +14,9 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
+import 'package:full_screen_image/full_screen_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_picker_gallery_camera/image_picker_gallery_camera.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -362,11 +364,17 @@ class _createProfileState extends State<createProfile> {
                         width: 300,
                         //color: Colors.white,
                         child: Center(
-                            child: Text(
-                          "Create",
-                          style: TextStyle(
-                              fontWeight: FontWeight.w900, fontSize: 15),
-                        ))),
+                            child: isCreated
+                                ? SpinKitCircle(
+                                    color: Colors.white,
+                                    size: 35,
+                                  )
+                                : Text(
+                                    "Create",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 15),
+                                  ))),
                     onPressed: () async {
                       setState(() {
                         isCreated = true;
@@ -471,6 +479,9 @@ class _createProfileState extends State<createProfile> {
                             return SelectProfile();
                           }));
                         } else {
+                          setState(() {
+                            isCreated = false;
+                          });
                           Navigator.push(context,
                               MaterialPageRoute(builder: (context) {
                             return SelectProfile();
@@ -478,6 +489,9 @@ class _createProfileState extends State<createProfile> {
                           //
                         }
                       } catch (e) {
+                        setState(() {
+                          isCreated = false;
+                        });
                         print(e);
                       }
                       /*
@@ -524,6 +538,8 @@ class _createProfileState extends State<createProfile> {
     );
   }
 }
+
+//SELECT PROFILE
 
 class SelectProfile extends StatefulWidget {
   @override
@@ -604,15 +620,19 @@ class _SelectProfileState extends State<SelectProfile> {
                         color: Colors.white,
                         disabledColor: Colors.white,
                         onPressed: () async {
-                          staticVars.id = await staticVars.docs[index]['id'];
-                          staticVars.profName =
-                              await staticVars.docs[index]['name'];
-                          staticVars.index = index;
-                          print(staticVars.id);
-                          await Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return MyChat();
-                          }));
+                          try {
+                            staticVars.id = await staticVars.docs[index]['id'];
+                            staticVars.profName =
+                                await staticVars.docs[index]['name'];
+                            staticVars.index = index;
+                            print(staticVars.id);
+                            await Navigator.push(context,
+                                MaterialPageRoute(builder: (context) {
+                              return MyChat();
+                            }));
+                          } catch (e) {
+                            print(e);
+                          }
                         },
                         child: Column(
                           children: <Widget>[
@@ -621,30 +641,87 @@ class _SelectProfileState extends State<SelectProfile> {
                                 overflow: Overflow.visible,
                                 children: <Widget>[
                                   Container(
-                                    height: 70,
+                                    height: 75,
                                     alignment: Alignment.bottomCenter,
                                     margin: EdgeInsets.only(left: 45),
                                     decoration: BoxDecoration(
-                                        color: Colors.redAccent.shade400,
+                                        color: Colors.white,
+                                        //color: Colors.grey.shade100,
                                         borderRadius:
                                             BorderRadius.circular(10)),
                                     width:
                                         MediaQuery.of(context).size.width - 75,
-                                    child: Center(
-                                      child: Text(
-                                        "${staticVars.docs[index]['name']}",
-                                        style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold),
-                                      ),
+                                    child: Column(
+                                      children: <Widget>[
+                                        Row(
+                                          children: <Widget>[
+                                            Container(
+                                              width: MediaQuery.of(context)
+                                                      .size
+                                                      .width /
+                                                  2.3,
+                                              alignment: Alignment.topLeft,
+                                              margin: EdgeInsets.only(
+                                                  left: MediaQuery.of(context)
+                                                          .size
+                                                          .width /
+                                                      7,
+                                                  top: 10),
+                                              child: Text(
+                                                "${staticVars.docs[index]['name']}",
+                                                style: TextStyle(
+                                                    //color: Colors.white,
+                                                    color: Colors.grey.shade900,
+                                                    fontSize: 19,
+                                                    fontWeight:
+                                                        FontWeight.w600),
+                                              ),
+                                            ),
+                                            Container(
+                                              alignment: Alignment.topLeft,
+                                              margin: EdgeInsets.only(
+                                                  left: MediaQuery.of(context)
+                                                          .size
+                                                          .width /
+                                                      15,
+                                                  top: 10),
+                                              child: Text(
+                                                "${staticVars.docs[index]['lastLogin']} am",
+                                                style: TextStyle(
+                                                    //color: Colors.white,
+                                                    color: Colors.grey.shade900,
+                                                    fontSize: 13,
+                                                    fontWeight:
+                                                        FontWeight.w400),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Container(
+                                          alignment: Alignment.topLeft,
+                                          margin: EdgeInsets.only(
+                                              left: MediaQuery.of(context)
+                                                      .size
+                                                      .width /
+                                                  7,
+                                              top: 8),
+                                          child: Text(
+                                            "${staticVars.docs[index]['mail']}",
+                                            style: TextStyle(
+                                                //color: Colors.white,
+                                                color: Colors.grey.shade500,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w400),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                   Positioned(
                                     top: -10,
                                     //bottom: 20,
-                                    height: 90,
-                                    width: 90,
+                                    height: 85,
+                                    width: 85,
                                     child: Container(
                                       //margin: EdgeInsets.only(top: 0, bottom: 10),
                                       decoration: BoxDecoration(
@@ -665,7 +742,7 @@ class _SelectProfileState extends State<SelectProfile> {
                               ),
                             ),
                             SizedBox(
-                              height: 15,
+                              height: 18,
                             )
                           ],
                         ),
@@ -705,15 +782,28 @@ class _SelectProfileState extends State<SelectProfile> {
               height: 1,
               width: 55,
               decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                      color: Colors.grey.shade300,
-                      width: 5,
-                      style: BorderStyle.solid),
-                  image: DecorationImage(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                    color: Colors.grey.shade300,
+                    width: 5,
+                    style: BorderStyle.solid),
+                /*image: DecorationImage(
+                  fit: BoxFit.cover,
+                  image: NetworkImage(staticVars.temp1["ProfilePic"]),
+                ),*/
+              ),
+              child: FullScreenWidget(
+                child: Hero(
+                  tag: 'profilePicViewer',
+                  child: ClipRRect(
+                    child: Image.network(
+                      staticVars.temp1["ProfilePic"],
                       fit: BoxFit.cover,
-                      image: NetworkImage(staticVars.temp1["ProfilePic"]))),
+                    ),
+                  ),
+                ),
+              ),
             ),
             SizedBox(
               width: 10,

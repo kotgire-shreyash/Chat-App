@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icons/flutter_icons.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:flutter_statusbarcolor/flutter_statusbarcolor.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -25,6 +26,7 @@ class _AuthState extends State<Auth> {
 
     bool islogged = false;
     bool issigned = false;
+    bool iscont = false;
 
     //Signup
 
@@ -218,14 +220,20 @@ class _AuthState extends State<Auth> {
                               height: 70,
                               width: 250,
                               //color: Colors.white,
-                              child: Center(child: Text("Login"))),
+                              child: Center(
+                                  child: islogged
+                                      ? SpinKitCircle(
+                                          size: 20,
+                                          color: Colors.white,
+                                        )
+                                      : Text("Login"))),
                           onPressed: () async {
+                            setState(() {
+                              islogged = true;
+                            });
                             var retrieved, result2, temp;
                             if (staticVars.username != null &&
                                 staticVars.password != null) {
-                              setState(() {
-                                islogged = true;
-                              });
                               try {
                                 result2 = await staticVars.authc
                                     .signInWithEmailAndPassword(
@@ -245,8 +253,21 @@ class _AuthState extends State<Auth> {
 
                                 staticVars.mail = temp["Name"];
                                 staticVars.dob = temp["dob"];
-                                staticVars.lastLogin = staticVars
-                                    .authc.currentUser.metadata.lastSignInTime;
+                                staticVars.lastLogin =
+                                    "${staticVars.authc.currentUser.metadata.lastSignInTime}";
+
+                                print(
+                                    "LAST LOGIN = ${staticVars.lastLogin.substring(12, 16)}");
+
+                                await staticVars.fsconnect
+                                    .collection("user")
+                                    .doc("ids")
+                                    .collection("user-ids")
+                                    .doc(staticVars.username)
+                                    .update({
+                                  "lastLogin":
+                                      "${staticVars.lastLogin.substring(12, 16)}"
+                                });
 
                                 print(
                                     "MAIL = ${staticVars.mail} \n DOB = ${staticVars.dob}");
@@ -305,6 +326,11 @@ class _AuthState extends State<Auth> {
 
                               }
                             } else {
+                              setState(
+                                () {
+                                  islogged = false;
+                                },
+                              );
                               //AppToast("No Credentials found");
                             }
 
@@ -598,7 +624,13 @@ class _SignUpState extends State<SignUp> {
                               height: 70,
                               width: 250,
                               //color: Colors.white,
-                              child: Center(child: Text("Sign up"))),
+                              child: Center(
+                                  child: issigned
+                                      ? SpinKitCircle(
+                                          size: 15,
+                                          color: Colors.white,
+                                        )
+                                      : Text("Sign up"))),
                           onPressed: () async {
                             if (staticVars.username1 != null &&
                                 staticVars.password1 != null) {
@@ -650,6 +682,9 @@ class _SignUpState extends State<SignUp> {
                               print("RESULT = $result");
                               Navigator.pop(context);
                             } else {
+                              setState(() {
+                                issigned = false;
+                              });
                               //AppToast("No credentials found");
                             }
                           })),
@@ -714,6 +749,8 @@ class _ContinueWithTheProfileState extends State<ContinueWithTheProfile> {
 
     //print("RETRIEVED : ${staticVars.temp['ProfilePic']}");
   }
+
+  var iscont = false;
 
   @override
   Widget build(BuildContext context) {
@@ -870,15 +907,21 @@ class _ContinueWithTheProfileState extends State<ContinueWithTheProfile> {
                               width: 400,
                               //color: Colors.white,
                               child: Center(
-                                  child: Text(
-                                "Continue",
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w900, fontSize: 15),
-                              ))),
+                                  child: iscont
+                                      ? SpinKitCircle(
+                                          size: 15,
+                                          color: Colors.white,
+                                        )
+                                      : Text(
+                                          "Continue",
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 15),
+                                        ))),
 
                           onPressed: () async {
                             setState(() {
-                              //isCreated = true;
+                              iscont = true;
                             });
 
                             /*Navigator.push(context,
@@ -941,13 +984,16 @@ class _ContinueWithTheProfileState extends State<ContinueWithTheProfile> {
                               print("DONE*********************************");
 
                               setState(() {
-                                //isCreated = false;
+                                iscont = true;
                               });
                               Navigator.push(context,
                                   MaterialPageRoute(builder: (context) {
                                 return SelectProfile();
                               }));
                             } catch (e) {
+                              setState(() {
+                                iscont = true;
+                              });
                               print(e);
                             }
                           },
