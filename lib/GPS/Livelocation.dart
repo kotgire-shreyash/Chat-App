@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'staticVars.dart';
 
 class Geolocation_page extends StatefulWidget {
   @override
@@ -22,11 +23,17 @@ class _Geolocation_pageState extends State<Geolocation_page> {
 
     gpstrial() async {
       print("hii 1");
-      Position position = await Geolocator.getCurrentPosition();
+      Position position = await Geolocator().getCurrentPosition();
       la = position.latitude;
       lo = position.longitude;
       print("hii");
       print(position);
+      await staticVars.fsconnect
+          .collection("user")
+          .doc("ids")
+          .collection("user-ids")
+          .doc("${staticVars.username}")
+          .update({"latitude": la, "longitude": lo});
     }
 
     void _onMapCreated(GoogleMapController controller) {
@@ -38,9 +45,11 @@ class _Geolocation_pageState extends State<Geolocation_page> {
       body: GoogleMap(
         onMapCreated: _onMapCreated,
         initialCameraPosition: CameraPosition(
-          target: LatLng(250.0, 150.0),
+          target: LatLng(staticVars.lat, staticVars.long),
           zoom: 14.55,
+          tilt: 50,
         ),
+        mapType: MapType.hybrid,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: gpstrial,
